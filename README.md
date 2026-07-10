@@ -1,14 +1,20 @@
 Secure Storage Server with Client-Side Encryption
+
 Overview
 This project is a Java-based file storage application that addresses the critical need to protect sensitive information from unauthorized access. It ensures absolute data privacy by implementing a zero-knowledge architecture, meaning the data remains secure even if the server infrastructure or its administrators are compromised.
+
 Architecture
 The application relies on a client-server model where the server never receives or stores plaintext files. All file data is fully encrypted on the user's local machine before any transmission occurs. Therefore, the server holds only scrambled, unreadable data, meaning it retains zero knowledge of the actual file contents. The server component is intentionally lightweight and utilizes Java HashMap data structures to simulate a secure backend database.  Symmetric Encryption
 File data is secured using the Advanced Encryption Standard (AES). The system generates a highly secure 256-bit key length for file encryption, and utilizes the AES/ECB/PKCS5Padding cipher configuration to handle the data transformation. The exact same mathematical key is required to both encrypt the file before uploading and decrypt the file after downloading.
+
 Envelope Encryption
 The application manages keys securely through an advanced Envelope Encryption process. When uploading a file, the client generates a massive 64-byte Master File Key. This key is split into two halves: the first 32 bytes act as the AES encryption key, and the last 32 bytes act as an HMAC integrity key. The user's derived Key Encryption Key is then used to encrypt this entire 64-byte Master File Key, wrapping it in a secure digital envelope. The system utilizes a Key Derivation Function to transform the user's password into a secure cryptographic Key Encryption Key. To fortify this key, it introduces a 16-byte random salt and runs the hashing algorithm through 600,000 iterations.
+
 Data Integrity and Tamper Verification
 To guarantee that a file is never maliciously altered, the system utilizes a Keyed-Hash Message Authentication Code (HMAC-SHA256). The cryptographic engine uses the second half of the 64-byte Master File Key as a dedicated secret key to generate a unique digital signature for the file data. Upon downloading and decrypting a file, the application calculates a new HMAC signature and compares it to the original. If the file was tampered with during transit, the system catches this, throws an "Integrity Check Failed" alert, and automatically deletes the compromised file.
+
 Memory Management
 To ensure application stability when processing large files, the cryptographic engine utilizes a memory management technique called chunking. Instead of loading an entire file into the computer's memory at once, the system reads and encrypts the data in distinct 4096-byte blocks. This prevents memory exhaustion and application crashes regardless of the file size.
+
 Identity and Access Control
 To ensure the integrity of user accounts, the application strictly enforces password complexity rules, verifying that every new password is a minimum of eight characters, contains at least one uppercase letter, and at least one special character. The backend does not maintain Access Control Lists or verify user access during a download request, meaning security is entirely cryptographic. Anyone who possesses a valid File ID can download the encrypted blob, but it is fundamentally impossible to read the contents without the corresponding encrypted keys. Furthermore, file sharing is handled entirely through Secure Share Links, where the client packages the decrypted Master File Key into a unique text string that another user can use to download and decrypt the contents locally. 
